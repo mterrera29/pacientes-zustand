@@ -2,18 +2,42 @@ import { useForm } from 'react-hook-form';
 import Error from './Error';
 import { DraftPatient } from '../types';
 import { usePatientStore } from '../store';
+import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 export default function PatientForm() {
   const addPatients = usePatientStore((state) => state.addPatients);
+  const activeId = usePatientStore((state) => state.activeId);
+  const patients = usePatientStore((state) => state.patients);
+  const updatePatient = usePatientStore((state) => state.updatePatient);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<DraftPatient>();
 
+  useEffect(() => {
+    if (activeId) {
+      const patient = patients.filter((pat) => pat.id === activeId)[0];
+      setValue('name', patient.name);
+      setValue('caretaker', patient.caretaker);
+      setValue('email', patient.email);
+      setValue('date', patient.date);
+      setValue('symptoms', patient.symptoms);
+    }
+  }, [activeId]);
+
   const registerPatient = (data: DraftPatient) => {
-    addPatients(data);
+    if (activeId) {
+      updatePatient(data);
+      toast.success('Paciente editado');
+    } else {
+      addPatients(data);
+      toast.success('Paciente agregado');
+    }
     reset();
   };
 
@@ -21,23 +45,23 @@ export default function PatientForm() {
     <div className='md:w-1/2 lg:w-2/5 mx-5'>
       <h2 className='font-black text-3xl text-center'>Seguimiento Pacientes</h2>
 
-      <p className='text-lg mt-5 text-center mb-10'>
+      <p className='text-lg mt-5 text-center mb-5'>
         Añade Pacientes y {''}
         <span className='text-indigo-600 font-bold'>Administralos</span>
       </p>
 
       <form
-        className='bg-white shadow-md rounded-lg py-10 px-5 mb-10'
+        className='bg-white shadow-md rounded-lg py-5 px-5 mb-10'
         noValidate
         onSubmit={handleSubmit(registerPatient)}
       >
-        <div className='mb-5'>
+        <div className='mb-3'>
           <label htmlFor='name' className='text-sm uppercase font-bold'>
             Paciente
           </label>
           <input
             id='name'
-            className='w-full p-3  border border-gray-100'
+            className='w-full p-1  border border-gray-100'
             type='text'
             placeholder='Nombre del Paciente'
             {...register('name', {
@@ -47,13 +71,13 @@ export default function PatientForm() {
         </div>
         {errors.name && <Error>{errors.name?.message?.toString()}</Error>}
 
-        <div className='mb-5'>
+        <div className='mb-3'>
           <label htmlFor='caretaker' className='text-sm uppercase font-bold'>
             Propietario
           </label>
           <input
             id='caretaker'
-            className='w-full p-3  border border-gray-100'
+            className='w-full p-1  border border-gray-100'
             type='text'
             placeholder='Nombre del Propietario'
             {...register('caretaker', {
@@ -63,13 +87,13 @@ export default function PatientForm() {
           {errors.caretaker && <Error>{errors.caretaker?.message}</Error>}
         </div>
 
-        <div className='mb-5'>
+        <div className='mb-3'>
           <label htmlFor='email' className='text-sm uppercase font-bold'>
             Email
           </label>
           <input
             id='email'
-            className='w-full p-3  border border-gray-100'
+            className='w-full p-1  border border-gray-100'
             type='email'
             placeholder='Email de Registro'
             {...register('email', {
@@ -83,13 +107,13 @@ export default function PatientForm() {
           {errors.email && <Error>{errors.email?.message}</Error>}
         </div>
 
-        <div className='mb-5'>
+        <div className='mb-3'>
           <label htmlFor='date' className='text-sm uppercase font-bold'>
             Fecha Alta
           </label>
           <input
             id='date'
-            className='w-full p-3  border border-gray-100'
+            className='w-full p-1  border border-gray-100'
             type='date'
             {...register('date', {
               required: 'La fecha es obligatoria',
@@ -104,7 +128,7 @@ export default function PatientForm() {
           </label>
           <textarea
             id='symptoms'
-            className='w-full p-3  border border-gray-100'
+            className='w-full p-1  border border-gray-100'
             placeholder='Síntomas del paciente'
             {...register('symptoms', {
               required: 'Los sintomas son obligatorios',
@@ -116,7 +140,7 @@ export default function PatientForm() {
 
         <input
           type='submit'
-          className='bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer transition-colors'
+          className='bg-indigo-600 w-full p-1 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer transition-colors'
           value='Guardar Paciente'
         />
       </form>
